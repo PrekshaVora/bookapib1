@@ -18,6 +18,8 @@ const shapeAI = express();
 // Configurations
 shapeAI.use(express.json());
 
+console.log(process.env.MONGO_URL);
+
 // Establish Database Connection
 mongoose.connect(
   process.env.MONGO_URL, 
@@ -263,16 +265,22 @@ Access          PUBLIC
 Parameters      isbn
 Method          PUT
 */
-shapeAI.put("/book/update/:isbn", (req, res) => {
-  database.books.forEach((book) => {
-    if (book.ISBN === req.params.isbn) {
-      book.title = req.body.bookTitle;
-      return;
+shapeAI.put("/book/update/:isbn", async (req, res) => {
+  const updatedBook = await BookModel.findOneAndUpdate(
+    {
+      ISBN: req.params.isbn,
+    },
+    {
+      title: req.body.bookTitle,
+    },
+    {
+      new: true,
     }
-  });
+    );
 
-  return res.json({ books: database.books });
-});
+
+  return res.json({ books: database.books 
+  });
 
 /*
 Route           /book/author/update
@@ -281,21 +289,49 @@ Access          PUBLIC
 Parameters      isbn
 Method          PUT
 */
-shapeAI.put("/book/author/update/:isbn", (req, res) => {
+shapeAI.put("/book/author/update/:isbn", async(req, res) => {
   // update the book database
-  database.books.forEach((book) => {
-    if (book.ISBN === req.params.isbn)
-      return book.authors.push(req.body.newAuthor);
-  });
+  
+  const updatedBook = await BookModel.findOneAndUpdate(
+    {
+      ISBN: req.params.isbn
+    },
+    {
+      $addToSet: {
+        authors: req.body.newAuthor,
+      },
+    },
+    {
+      new : true,
+    }
+    );
+  //database.books.forEach((book) => {
+    //if (book.ISBN === req.params.isbn)
+      //return book.authors.push(req.body.newAuthor);
+  //});
   // update the author database
-  database.authors.forEach((author) => {
-    if (author.id === req.body.newAuthor)
-      return author.books.push(req.params.isbn);
-  });
+
+  const updatedAuthor = await AuthorModel.findOneAndUpdate(
+    {
+      id: req.body.newAuthor,
+   },
+   {
+     $push :{
+       books: req.params.isbn,
+     },
+   },
+   {
+     new : true,
+   }
+   );
+  //database.authors.forEach((author) => {
+    //if (author.id === req.body.newAuthor)
+      //return author.books.push(req.params.isbn);
+  //});
 
   return res.json({
-    books: database.books,
-    authors: database.authors,
+    books: updatedBook,
+    authors: updatedAuthor,
     message: "New author was added 🚀",
   });
 });
