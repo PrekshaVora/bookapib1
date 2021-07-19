@@ -62,7 +62,7 @@ Access        public
 Parameters    isbn-(Books isbn in author's data)
 Method        get
 */
-shapeAI.get("/a/:authorid",(req,res) => {
+Router.get("/a/:authorid",(req,res) => {
     const getSpecificBook = database.authors.filter(
         (author) => author.books.includes(req.params.authorid)
     );
@@ -197,66 +197,5 @@ Router.delete("/delete/:isbn", async (req, res) => {
   return res.json({ books: updatedBookDatabase });
 });
 
-/*
-  Route           /book/delete/author
-  Description     delete a author from a book
-  Access          PUBLIC
-  Parameters      isbn, author id
-  Method          DELETE
-  */
-Router.delete("/delete/author/:isbn/:authorId", async (req, res) => {
-  // update the book database
-
-  const updatedBook = await BookModel.findOneAndUpdate(
-    {
-      ISBN: req.params.isbn,
-    },
-    {
-      $pull: {
-        authors: parseInt(req.params.authorId),
-      },
-    },
-    { new: true }
-  );
-
-  // database.books.forEach((book) => {
-  //   if (book.ISBN === req.params.isbn) {
-  //     const newAuthorList = book.authors.filter(
-  //       (author) => author !== parseInt(req.params.authorId)
-  //     );
-  //     book.authors = newAuthorList;
-  //     return;
-  //   }
-  // });
-
-  // update the author database
-  const updatedAuthor = await AuthorModel.findOneAndUpdate(
-    {
-      id: parseInt(req.params.authorId),
-    },
-    {
-      $pull: {
-        books: req.params.isbn,
-      },
-    },
-    { new: true }
-  );
-  // database.authors.forEach((author) => {
-  //   if (author.id === parseInt(req.params.authorId)) {
-  //     const newBooksList = author.books.filter(
-  //       (book) => book !== req.params.isbn
-  //     );
-
-  //     author.books = newBooksList;
-  //     return;
-  //   }
-  // });
-
-  return res.json({
-    message: "author was deleted!!!!!!😪",
-    book: updatedBook,
-    author: updatedAuthor,
-  });
-});
 
 module.exports = Router;

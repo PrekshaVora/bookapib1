@@ -16,12 +16,38 @@ Router.get("/", async (req, res) => {
 
 /*
 Route           /author
+Description     get all books based on author
+Access          Public
+Parameters      isbn
+Method          Get
+*/ 
+
+Router.get("/:isbn", (req, res) => {
+  try {
+          const getSpecificAuthors = database.authors.filter(
+          (author) => author.books.includes (req.params.isbn)
+      );
+
+      if(getSpecificAuthors.length === 0)    {
+          return res.json({
+              error: `No author found for the Book of ${req.params.isbn}`,
+      });
+      }
+
+      return res.json({ author: getSpecificAuthors});
+  } catch (error) {
+      return res.json({ error: error.message});
+  }
+});
+
+/*
+Route           /author
 Description     get specific authors
 Access          PUBLIC
 Parameters      author
 Method          GET
 */
-shapeAI.get("/author", (req, res) => {
+Router.get("/author", (req, res) => {
     const getSpecificauthors = database.authors.filter((author) =>
       author.book.includes(req.params.authors)
     );
@@ -67,14 +93,17 @@ Access          PUBLIC
 Parameters      NONE
 Method          POST
 */
-Router.post("/new", (req, res) => {
-  const { newAuthor } = req.body;
+Router.post("/new", async (req, res) => {
+  try {
+    const { newAuthor } = req.body;
 
-  AuthorModel.create(newAuthor);
+    await PublicationModel.create(newAuthor);
 
-  return res.json({ message: "author was added!" });
+    return res.json({ message: "author was added!" });
+  } catch (error) {
+    return res.json({ error: error.message });
+  }
 });
-
 /*
 Route           /book/author/update
 Description     update/add new author
@@ -82,7 +111,7 @@ Access          PUBLIC
 Parameters      isbn
 Method          PUT
 */
-shapeAI.put("/book/author/update/:isbn", async(req, res) => {
+Router.put("/book/author/update/:isbn", async(req, res) => {
     // update the book database
     
     const updatedBook = await BookModel.findOneAndUpdate(
@@ -137,7 +166,7 @@ Route          /author/update
   Method         PUT
  */
 
-  shapeAI.put("/author/update/:id", (req, res) => {
+  Router.put("/author/update/:id", (req, res) => {
     database.authors.forEach((author) => {
         if (author.id === req.params.id) {
             author.name = req.body.authorName;
@@ -154,7 +183,7 @@ Access          PUBLIC
 Parameters      isbn
 Method          DELETE
 */
-shapeAI.delete("/author/delete/:isbn", (req, res) => {
+Router.delete("/author/delete/:isbn", (req, res) => {
     const updatedBookDatabase = database.books.filter(
       (book) => book.ISBN !== req.params.isbn
     );

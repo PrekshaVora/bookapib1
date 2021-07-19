@@ -1,3 +1,5 @@
+const PublicationModel = require("../../database/publication");
+
 const Router = require("express").Router();
 
 /*
@@ -19,7 +21,7 @@ Access          PUBLIC
 Parameters      publication
 Method          GET
 */
-shapeAI.get("/publication", (req, res) => {
+Router.get("/publication", (req, res) => {
     const getSpecificpublications = database.publications.filter((publications) =>
       publications.books.includes(req.params.publications)
     );
@@ -40,7 +42,7 @@ Access          PUBLIC
 Parameters      isbn
 Method          GET
 */
-shapeAI.get("/publication/:name", (req, res) => {
+Router.get("/publication/:name", (req, res) => {
     const getSpecificpublications = database.publications.filter((publications) =>
       publication.books.includes(req.params.name)
         );
@@ -62,7 +64,7 @@ shapeAI.get("/publication/:name", (req, res) => {
   Method         PUT
  */
 
-  shapeAI.put("/publication/update/:id", (req, res) => {
+  Router.put("/publication/update/:id", (req, res) => {
     database.publications.forEach((publication) => {
         if (publication.id === req.params.id) {
             publication.name = req.body.publicationName;
@@ -81,13 +83,17 @@ Parameters      NONE
 Method          POST
 */
 
-shapeAI.post("/publication/new", (req, res) => {
+Router.post("/new", async (req, res) => {
+  try {
     const { newPublication } = req.body;
-    
-    PublicationModel.create(newPublication);
-  
-    return res.json({ pubnlications: database.publications, message: "publication was added!" });
-  });
+
+    await PublicationModel.create(newPublication);
+
+    return res.json({ message: "publication was added!" });
+  } catch (error) {
+    return res.json({ error: error.message });
+  }
+});
 
 /*
   Route           /publication/update/book
@@ -159,7 +165,7 @@ Access          PUBLIC
 Parameters      isbn
 Method          DELETE
 */
-shapeAI.delete("/publication/delete/:isbn", (req, res) => {
+Router.delete("/publication/delete/:isbn", (req, res) => {
     const updatedBookDatabase = database.books.filter(
       (book) => book.ISBN !== req.params.isbn
     );
